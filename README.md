@@ -15,10 +15,15 @@ langchain-learning/
 │       │   ├── agent_with_tools.py       # 使用工具的智能代理示例
 │       │   ├── memory_management.py      # 记忆管理示例
 │       │   ├── siliconflow_qwen.py       # 硅基流动 Qwen 模型集成示例
+│       │   ├── advanced_agent.py        # 高级智能体示例 (记忆管理、条件路由、工具链)
+│       │   ├── demo.py                   # 智能体演示脚本
+│       │   ├── auto_demo.py              # 智能体自动演示脚本
 │       │   ├── test_chinese_chat.py      # 中文聊天助手测试脚本
 │       │   ├── demo_chinese_chat.py      # 中文聊天助手演示脚本
 │       │   ├── test_model_selection.py   # 模型选择测试脚本
-│       │   └── model_selection_demo.py   # 模型比较演示脚本
+│       │   ├── model_selection_demo.py   # 模型比较演示脚本
+│       │   ├── test_agent.py             # 基础智能体测试脚本
+│       │   └── test_advanced_agent.py    # 高级智能体测试脚本
 │       ├── models/
 │       │   └── __init__.py
 │       └── utils/
@@ -137,6 +142,55 @@ uv run python src/langchain_learning/examples/agent_with_tools.py
 运行示例:
 ```bash
 uv run python src/langchain_learning/examples/memory_management.py
+```
+
+### 4. 高级智能体 (advanced_agent.py)
+
+这个示例展示了 LangChain 1.0 的高级智能体功能，包括:
+
+- 记忆管理 (短期和长期记忆)
+- 工具链组合
+- 条件路由 (基于意图自动选择处理链)
+- 错误处理
+- 流式处理
+
+运行示例:
+```bash
+uv run python src/langchain_learning/examples/advanced_agent.py
+```
+
+### 5. 智能体演示脚本 (demo.py & auto_demo.py)
+
+这两个脚本提供了演示 LangChain 1.0 智能体功能的界面:
+
+- **demo.py**: 交互式演示界面，可选择不同类型的演示
+- **auto_demo.py**: 自动演示脚本，无需交互即可展示所有功能
+
+运行交互式演示:
+```bash
+uv run python src/langchain_learning/examples/demo.py
+```
+
+运行自动演示:
+```bash
+uv run python src/langchain_learning/examples/auto_demo.py
+```
+
+### 6. 测试脚本 (test_agent.py & test_advanced_agent.py)
+
+这两个脚本提供了完整的测试套件，用于验证智能体功能:
+
+- **test_agent.py**: 基础智能体功能测试
+- **test_advanced_agent.py**: 高级智能体功能测试
+
+运行基础测试:
+```bash
+uv run python src/langchain_learning/examples/test_agent.py
+```
+
+运行高级测试:
+```bash
+uv run python src/langchain_learning/examples/test_advanced_agent.py
 ```
 
 ## LangChain 1.0 核心概念
