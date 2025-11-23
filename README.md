@@ -73,20 +73,6 @@ GOOGLE_API_KEY=your_google_api_key
 
 ### 1. 简单聊天机器人 (simple_chatbot.py)
 
-这个示例展示了如何使用 LangChain 1.0 创建一个基本的聊天机器人，包括:
-
-- 初始化不同提供商的模型 (OpenAI, Anthropic, Google)
-- 基本对话功能
-- 消息类型演示
-- 流式响应
-
-运行示例:
-```bash
-uv run python src/langchain_learning/examples/simple_chatbot.py
-```
-
-#### 1.1 中文聊天助手 (simple_chatbot.py - 中文版)
-
 这个示例已修改为使用硅基流动的 Qwen3-8B 模型，提供中文对话功能:
 
 - 使用硅基流动 API (Qwen/Qwen3-8B)
