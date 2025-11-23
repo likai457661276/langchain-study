@@ -198,6 +198,11 @@ $RECYCLE.BIN/
 
 # Project specific
 # Keep .env.example but ignore .env with actual keys
+
+# Vector database stores
+chroma_langchain_db/
+*.db
+*.sqlite3
 .env
 !.env.example
 

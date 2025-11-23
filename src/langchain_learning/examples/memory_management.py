@@ -1,8 +1,8 @@
 """
-Memory Management Example - LangChain 1.0 Memory Features
+内存管理示例 - LangChain 1.0 内存功能
 
-This example demonstrates how to use memory features in LangChain 1.0.
-It shows how to store, retrieve, and search memories using LangGraph's memory store.
+本示例演示如何在LangChain 1.0中使用内存功能。
+它展示了如何使用LangGraph的内存存储来存储、检索和搜索内存。
 """
 
 import os
@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain.embeddings import init_embeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -23,26 +24,30 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.prompt import Prompt
 
-# Load environment variables
+# 加载环境变量
 load_dotenv()
 
-# Initialize rich console for pretty output
+# 初始化rich控制台用于美化输出
 console = Console()
 
 
 def setup_memory_store():
     """
-    Set up an in-memory store for demonstration.
-    In a production environment, you would use a persistent store.
+    设置一个内存存储用于演示。
+    在生产环境中，您将使用持久化存储。
     """
-    # Initialize embeddings
-    embeddings = init_embeddings("openai")
+    # 初始化嵌入
+    embeddings = OpenAIEmbeddings(
+        model="BAAI/bge-large-zh-v1.5",
+        base_url="https://api.siliconflow.cn/v1",
+        api_key=os.getenv("SILICONFLOW_API_KEY")
+    )
     
-    # Create in-memory store with embeddings
-    # Note: In a real application, you would use a proper embedding function
-    # For this demo, we'll use a simple mock embedding function
+    # 创建带有嵌入的内存存储
+    # 注意：在实际应用中，您将使用适当的嵌入函数
+    # 对于此演示，我们将使用简单的模拟嵌入函数
     def embed(texts: List[str]) -> List[List[float]]:
-        # Mock embedding function - in production, use real embeddings
+        # 模拟嵌入函数 - 在生产环境中使用真实嵌入
         return [[hash(text) % 1000 / 1000.0 for _ in range(10)] for text in texts]
     
     store = InMemoryStore(index={"embed": embed, "dims": 10})
@@ -51,54 +56,54 @@ def setup_memory_store():
 
 def basic_memory_operations():
     """
-    Demonstrate basic memory operations: put, get, search.
+    演示基本内存操作：put、get、search。
     """
-    console.print(Panel.fit("💾 Basic Memory Operations", style="bold blue"))
+    console.print(Panel.fit("💾 基本内存操作", style="bold blue"))
     
-    # Set up memory store
+    # 设置内存存储
     store = setup_memory_store()
-    console.print("[green]✓ Memory store initialized[/green]")
+    console.print("[green]✓ 内存存储已初始化[/green]")
     
-    # Define namespace for user memories
+    # 定义用户内存的命名空间
     user_id = "demo_user"
     namespace = (user_id, "memories")
     
-    # Store some memories
+    # 存储一些内存
     memories = [
         {
             "key": "preference",
-            "value": {"preference": "User prefers concise answers and technical details."}
+            "value": {"preference": "用户更喜欢简洁的答案和技术细节。"}
         },
         {
             "key": "project",
-            "value": {"project": "User is working on a LangChain learning project."}
+            "value": {"project": "用户正在做一个LangChain学习项目。"}
         },
         {
             "key": "expertise",
-            "value": {"expertise": "User has intermediate Python knowledge and is new to LangChain."}
+            "value": {"expertise": "用户具有中级Python知识，对LangChain还不熟悉。"}
         }
     ]
     
-    console.print("\n[bold]Storing memories:[/bold]")
+    console.print("\n[bold]存储内存:[/bold]")
     for memory in memories:
         store.put(namespace, memory["key"], memory["value"])
-        console.print(f"  ✓ Stored {memory['key']}: {memory['value']}")
+        console.print(f"  ✓ 已存储 {memory['key']}: {memory['value']}")
     
-    # Retrieve a specific memory
-    console.print("\n[bold]Retrieving specific memory:[/bold]")
+    # 检索特定内存
+    console.print("\n[bold]检索特定内存:[/bold]")
     retrieved = store.get(namespace, "preference")
     if retrieved:
-        console.print(f"  Retrieved preference: {retrieved.value}")
+        console.print(f"  检索到的偏好: {retrieved.value}")
     
-    # Search memories
-    console.print("\n[bold]Searching memories:[/bold]")
-    search_results = store.search(namespace, query="user knowledge")
-    console.print(f"  Found {len(search_results)} memories matching 'user knowledge':")
+    # 搜索内存
+    console.print("\n[bold]搜索内存:[/bold]")
+    search_results = store.search(namespace, query="用户知识")
+    console.print(f"  找到 {len(search_results)} 个匹配'用户知识'的内存:")
     for result in search_results:
         console.print(f"    - {result.key}: {result.value}")
     
-    # List all memories in namespace
-    console.print("\n[bold]All memories in namespace:[/bold]")
+    # 列出命名空间中的所有内存
+    console.print("\n[bold]命名空间中的所有内存:[/bold]")
     all_items = store.search(namespace)
     for item in all_items:
         console.print(f"    - {item.key}: {item.value}")
@@ -106,52 +111,52 @@ def basic_memory_operations():
 
 def conversation_memory_demo():
     """
-    Demonstrate how to use memory in a conversation context.
+    演示如何在对话上下文中使用内存。
     """
-    console.print(Panel.fit("💬 Conversation Memory Demo", style="bold blue"))
+    console.print(Panel.fit("💬 对话内存演示", style="bold blue"))
     
-    # Initialize model and memory store
+    # 初始化模型和内存存储
     model = init_chat_model("gpt-4o-mini", model_provider="openai")
     store = setup_memory_store()
     
-    # Define namespace for conversation memories
+    # 定义对话内存的命名空间
     user_id = "demo_user"
     namespace = (user_id, "conversation")
     
-    # Store conversation context
+    # 存储对话上下文
     conversation_context = {
-        "topic": "LangChain learning",
-        "user_goals": "Understand how to use LangChain 1.0 for building AI applications",
+        "topic": "LangChain学习",
+        "user_goals": "了解如何使用LangChain 1.0构建AI应用程序",
         "previous_discussions": [
-            "User asked about basic chat setup",
-            "User inquired about agents and tools",
-            "User wanted to know about memory management"
+            "用户询问了基本聊天设置",
+            "用户询问了代理和工具",
+            "用户想了解内存管理"
         ]
     }
     
     store.put(namespace, "context", conversation_context)
     
-    console.print("[green]✓ Conversation context stored[/green]")
+    console.print("[green]✓ 对话上下文已存储[/green]")
     
-    # Simulate a conversation with memory
-    console.print("\n[bold]Simulating conversation with memory:[/bold]\n")
+    # 模拟带有内存的对话
+    console.print("\n[bold]模拟带有内存的对话:[/bold]\n")
     
-    # First message
-    user_message = "Can you help me understand LangChain's memory features?"
+    # 第一条消息
+    user_message = "你能帮我理解LangChain的内存功能吗？"
     
-    # Retrieve relevant memories before responding
-    memories = store.search(namespace, query="memory features")
+    # 在响应前检索相关内存
+    memories = store.search(namespace, query="内存功能")
     
-    # Format memories for context
+    # 格式化内存用于上下文
     memory_context = "\n".join([f"- {item.key}: {item.value}" for item in memories])
     
-    # Create a prompt with memory context
-    system_prompt = f"""You are a helpful assistant for learning LangChain.
+    # 创建带有内存上下文的提示
+    system_prompt = f"""你是一个学习LangChain的得力助手。
     
-    Previous conversation context:
+    之前的对话上下文:
     {memory_context}
     
-    Use this context to provide a personalized response.
+    使用此上下文提供个性化响应。
     """
     
     messages = [
@@ -159,13 +164,13 @@ def conversation_memory_demo():
         HumanMessage(content=user_message)
     ]
     
-    # Get model response
+    # 获取模型响应
     response = model.invoke(messages)
     
-    console.print(f"[bold blue]User:[/bold blue] {user_message}")
-    console.print(f"[bold green]Assistant:[/bold green] {response.content}")
+    console.print(f"[bold blue]用户:[/bold blue] {user_message}")
+    console.print(f"[bold green]助手:[/bold green] {response.content}")
     
-    # Store this interaction in memory
+    # 将此交互存储在内存中
     interaction = {
         "timestamp": datetime.now().isoformat(),
         "user_message": user_message,
@@ -173,142 +178,146 @@ def conversation_memory_demo():
     }
     
     store.put(namespace, f"interaction_{datetime.now().strftime('%Y%m%d_%H%M%S')}", interaction)
-    console.print("[green]✓ Interaction stored in memory[/green]")
+    console.print("[green]✓ 交互已存储在内存中[/green]")
 
 
 def vector_memory_demo():
     """
-    Demonstrate vector-based memory storage and retrieval.
+    演示基于向量的内存存储和检索。
     """
-    console.print(Panel.fit("🔍 Vector Memory Demo", style="bold blue"))
+    console.print(Panel.fit("🔍 向量内存演示", style="bold blue"))
     
-    # Initialize embeddings
-    embeddings = init_embeddings("openai")
+    # 初始化嵌入
+    embeddings = OpenAIEmbeddings(
+        model="BAAI/bge-large-zh-v1.5",
+        base_url="https://api.siliconflow.cn/v1",
+        api_key=os.getenv("SILICONFLOW_API_KEY")
+    )
     
-    # Create a simple vector store using Chroma
+    # 使用Chroma创建简单的向量存储
     vector_store = Chroma(
         collection_name="langchain_memories",
         embedding_function=embeddings,
         persist_directory="./chroma_langchain_db"
     )
     
-    console.print("[green]✓ Vector store initialized[/green]")
+    console.print("[green]✓ 向量存储已初始化[/green]")
     
-    # Add some documents to the vector store
+    # 向向量存储添加一些文档
     documents = [
-        "LangChain is a framework for building applications powered by large language models.",
-        "Agents in LangChain can use tools to perform actions and gather information.",
-        "Memory in LangChain allows applications to remember previous interactions.",
-        "LangChain 1.0 introduced the create_agent function for easier agent creation.",
-        "LangGraph provides a low-level orchestration framework for building agents."
+        "LangChain是一个用于构建由大型语言模型驱动的应用程序的框架。",
+        "LangChain中的代理可以使用工具执行操作和收集信息。",
+        "LangChain中的内存允许应用程序记住之前的交互。",
+        "LangChain 1.0引入了create_agent函数，使代理创建更容易。",
+        "LangGraph提供了一个用于构建代理的低级编排框架。"
     ]
     
-    # Add documents with IDs
+    # 添加带有ID的文档
     ids = [f"doc_{i}" for i in range(len(documents))]
     vector_store.add_texts(texts=documents, ids=ids)
     
-    console.print(f"[green]✓ Added {len(documents)} documents to vector store[/green]")
+    console.print(f"[green]✓ 已向向量存储添加 {len(documents)} 个文档[/green]")
     
-    # Search for similar documents
-    query = "How to create agents in LangChain?"
-    console.print(f"\n[bold]Searching for documents similar to:[/bold] {query}")
+    # 搜索相似文档
+    query = "如何在LangChain中创建代理？"
+    console.print(f"\n[bold]搜索与以下内容相似的文档:[/bold] {query}")
     
     results = vector_store.similarity_search_with_score(query, k=3)
     
-    console.print(f"\n[bold]Found {len(results)} similar documents:[/bold]\n")
+    console.print(f"\n[bold]找到 {len(results)} 个相似文档:[/bold]\n")
     for i, (doc, score) in enumerate(results):
-        console.print(f"[bold]Result {i+1}[/bold] (Score: {score:.4f}):")
+        console.print(f"[bold]结果 {i+1}[/bold] (得分: {score:.4f}):")
         console.print(f"  {doc.page_content}\n")
 
 
 def long_term_memory_demo():
     """
-    Demonstrate long-term memory management with user profiles.
+    演示使用用户档案的长期内存管理。
     """
-    console.print(Panel.fit("🧠 Long-term Memory Demo", style="bold blue"))
+    console.print(Panel.fit("🧠 长期内存演示", style="bold blue"))
     
-    # Initialize model and memory store
+    # 初始化模型和内存存储
     model = init_chat_model("gpt-4o-mini", model_provider="openai")
     store = setup_memory_store()
     
-    # Create a user profile
+    # 创建用户档案
     user_id = "demo_user"
     profile_namespace = (user_id, "profile")
     memories_namespace = (user_id, "memories")
     
-    # Store user profile
+    # 存储用户档案
     profile = {
-        "name": "Demo User",
+        "name": "演示用户",
         "preferences": {
-            "response_style": "concise",
-            "technical_level": "intermediate",
+            "response_style": "简洁",
+            "technical_level": "中级",
             "interests": ["AI", "Python", "LangChain"]
         },
         "learning_goals": [
-            "Understand LangChain basics",
-            "Build an AI application",
-            "Learn about agents and tools"
+            "理解LangChain基础知识",
+            "构建AI应用程序",
+            "了解代理和工具"
         ],
         "last_interaction": datetime.now().isoformat()
     }
     
     store.put(profile_namespace, "user_profile", profile)
-    console.print("[green]✓ User profile stored[/green]")
+    console.print("[green]✓ 用户档案已存储[/green]")
     
-    # Store some specific memories
+    # 存储一些特定的内存
     memories = [
-        {"key": "question_1", "value": {"question": "What is LangChain?", "answer": "A framework for LLM applications"}},
-        {"key": "question_2", "value": {"question": "How do I create an agent?", "answer": "Use the create_agent function"}},
-        {"key": "question_3", "value": {"question": "What tools are available?", "answer": "Various tools for web search, calculations, etc."}}
+        {"key": "question_1", "value": {"question": "什么是LangChain？", "answer": "一个用于LLM应用程序的框架"}},
+        {"key": "question_2", "value": {"question": "如何创建代理？", "answer": "使用create_agent函数"}},
+        {"key": "question_3", "value": {"question": "有哪些工具可用？", "answer": "各种用于网络搜索、计算等的工具"}}
     ]
     
     for memory in memories:
         store.put(memories_namespace, memory["key"], memory["value"])
     
-    console.print(f"[green]✓ Stored {len(memories)} Q&A memories[/green]")
+    console.print(f"[green]✓ 已存储 {len(memories)} 个问答内存[/green]")
     
-    # Retrieve user profile
+    # 检索用户档案
     user_profile = store.get(profile_namespace, "user_profile")
-    console.print("\n[bold]User Profile:[/bold]")
-    console.print(f"  Name: {user_profile.value['name']}")
-    console.print(f"  Response Style: {user_profile.value['preferences']['response_style']}")
-    console.print(f"  Technical Level: {user_profile.value['preferences']['technical_level']}")
-    console.print(f"  Interests: {', '.join(user_profile.value['preferences']['interests'])}")
+    console.print("\n[bold]用户档案:[/bold]")
+    console.print(f"  姓名: {user_profile.value['name']}")
+    console.print(f"  响应风格: {user_profile.value['preferences']['response_style']}")
+    console.print(f"  技术水平: {user_profile.value['preferences']['technical_level']}")
+    console.print(f"  兴趣: {', '.join(user_profile.value['preferences']['interests'])}")
     
-    # Search for relevant memories based on a query
-    query = "agent creation"
-    console.print(f"\n[bold]Searching memories for:[/bold] {query}")
+    # 根据查询搜索相关内存
+    query = "代理创建"
+    console.print(f"\n[bold]搜索内存:[/bold] {query}")
     
     relevant_memories = store.search(memories_namespace, query=query)
-    console.print(f"[bold]Found {len(relevant_memories)} relevant memories:[/bold]")
+    console.print(f"[bold]找到 {len(relevant_memories)} 个相关内存:[/bold]")
     
     for memory in relevant_memories:
         console.print(f"  - {memory.value['question']}: {memory.value['answer']}")
     
-    # Simulate a personalized response based on profile and memories
-    console.print("\n[bold]Simulating personalized response:[/bold]\n")
+    # 模拟基于档案和内存的个性化响应
+    console.print("\n[bold]模拟个性化响应:[/bold]\n")
     
-    # Get relevant memories
+    # 获取相关内存
     memories_context = "\n".join([
         f"- {mem.value['question']}: {mem.value['answer']}" 
         for mem in relevant_memories
     ])
     
-    # Create personalized prompt
-    system_prompt = f"""You are a helpful assistant for {user_profile.value['name']}.
+    # 创建个性化提示
+    system_prompt = f"""你是 {user_profile.value['name']} 的得力助手。
     
-    User Profile:
-    - Response Style: {user_profile.value['preferences']['response_style']}
-    - Technical Level: {user_profile.value['preferences']['technical_level']}
-    - Interests: {', '.join(user_profile.value['preferences']['interests'])}
+    用户档案:
+    - 响应风格: {user_profile.value['preferences']['response_style']}
+    - 技术水平: {user_profile.value['preferences']['technical_level']}
+    - 兴趣: {', '.join(user_profile.value['preferences']['interests'])}
     
-    Previous Q&A:
+    之前的问答:
     {memories_context}
     
-    Provide a response that matches the user's preferences and builds on their previous knowledge.
+    提供符合用户偏好并基于其之前知识的响应。
     """
     
-    user_question = "Can you explain more about agent creation in LangChain?"
+    user_question = "你能详细解释一下LangChain中的代理创建吗？"
     
     messages = [
         SystemMessage(content=system_prompt),
@@ -317,25 +326,25 @@ def long_term_memory_demo():
     
     response = model.invoke(messages)
     
-    console.print(f"[bold blue]User:[/bold blue] {user_question}")
-    console.print(f"[bold green]Assistant:[/bold green] {response.content}")
+    console.print(f"[bold blue]用户:[/bold blue] {user_question}")
+    console.print(f"[bold green]助手:[/bold green] {response.content}")
     
-    # Update last interaction
+    # 更新最后交互时间
     profile["last_interaction"] = datetime.now().isoformat()
     store.put(profile_namespace, "user_profile", profile)
-    console.print("[green]✓ Updated last interaction time[/green]")
+    console.print("[green]✓ 已更新最后交互时间[/green]")
 
 
 if __name__ == "__main__":
-    console.print(Panel.fit("LangChain 1.0 Memory Management Examples", style="bold blue"))
+    console.print(Panel.fit("LangChain 1.0 内存管理示例", style="bold blue"))
     
     choice = console.input(
-        "\n[bold]Select an example to run:[/bold]\n"
-        "1. Basic Memory Operations\n"
-        "2. Conversation Memory Demo\n"
-        "3. Vector Memory Demo\n"
-        "4. Long-term Memory Demo\n"
-        "[bold]Enter your choice (1-4):[/bold] "
+        "\n[bold]选择要运行的示例:[/bold]\n"
+        "1. 基本内存操作\n"
+        "2. 对话内存演示\n"
+        "3. 向量内存演示\n"
+        "4. 长期内存演示\n"
+        "[bold]输入您的选择 (1-4):[/bold] "
     )
     
     if choice == "1":
@@ -347,4 +356,4 @@ if __name__ == "__main__":
     elif choice == "4":
         long_term_memory_demo()
     else:
-        console.print("[red]Invalid choice. Please run the script again.[/red]")
+        console.print("[red]无效选择。请再次运行脚本。[/red]")
